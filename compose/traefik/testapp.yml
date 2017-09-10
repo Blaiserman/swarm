@@ -1,0 +1,24 @@
+version: "3.3"
+
+networks:
+  admin-net:
+    external: true
+
+services:
+
+   blog:
+      image: alexellis2/ghost-on-docker
+      networks:
+        - admin-net
+      depends_on:
+        - traefik-ssl
+      deploy:
+        labels:
+          - "com.df.notify=true"
+          - "com.df.scrapePort=2368"
+          - "traefik.enable=true"
+          - "traefik.port=2368"
+          - "traefik.frontend.rule=Host:blog.mydomain.lan"
+        placement:
+          constraints:
+            - 'node.role == manager'

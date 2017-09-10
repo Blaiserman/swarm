@@ -1,0 +1,9 @@
+[docker]
+endpoint = "unix:///var/run/docker.sock"
+# default domain
+domain = "mydomyin.lan"
+watch = true
+swarmmode = true
+[accessLog]
+  filePath = "/log/access.log"
+traefikLogsFile = "/log/traefik.log"

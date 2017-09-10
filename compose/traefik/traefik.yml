@@ -1,0 +1,36 @@
+version: "3.3"
+
+networks:
+    admin-net:
+      external: true
+
+volumes:
+    data:
+
+configs:
+  traefik.toml:
+    file: ./traefik.toml
+
+services:
+
+    traefik:
+      image: traefik
+      command: -c /dev/null --web --docker --docker.swarmmode --docker.watch --docker.domain=mydomain.lan --logLevel=DEBUG
+      networks:
+        - admin-net
+      ports:
+        - "80:80"
+        - "8080:8080"
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+#       - /dockerdata/traefik/log:/log
+      deploy:
+        mode: global
+      configs:
+      - source: traefik.toml
+        target: /etc/traefik/traefik.toml
+    deploy:
+      labels:
+        - "com.df.notify=true"
+        - "com.df.scrapePort=8080"
+        - "traefik.port=8080"

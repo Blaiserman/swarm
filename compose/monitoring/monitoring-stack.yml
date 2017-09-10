@@ -1,0 +1,155 @@
+version: '3'
+
+servicis:
+
+ alertmanager:
+    image: prom/alertmanager
+    networks:
+      - monitor
+    ports:
+      - "9093:9093"
+    volumes:
+      - /var/dockerdata/alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
+      - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
+    command: [-config.file=/etc/alertmanager/alertmanagerconfig.yml,-storage.path=/alertmanager/data]
+    labels:
+      com.docker.stack.namespace: "monitoring"
+      com.docker.service.name: "alertmanager"
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+          parallelism: 1
+          delay: 60s
+      restart_policy:
+          condition: on-failure
+          max_attempts: 5
+
+ monitor:
+    image: vfarcic/docker-flow-monitor
+    environment:
+      - LISTENER_ADDRESS=swarm-listener
+      - GLOBAL_SCRAPE_INTERVAL=10s
+      - ARG_ALERTMANAGER_URL=http://alert-manager:9093
+    networks:
+      - monitor
+    ports:
+      - 9090:9090
+
+  #alert-manager:
+  #  image: vfarcic/alert-manager:slack
+  #  networks:
+  #    - monitor
+
+  # user create_alert_manager_config.sh
+  #alert-manager:
+  #image: prom/alertmanager
+  #networks:
+  #  - monitor
+  #secrets:
+  #  - alert_manager_config
+  #command: -config.file=/run/secrets/alert_manager_config -storage.path=/alertmanager
+
+ swarm-listener:
+    image: vfarcic/docker-flow-swarm-listener
+    networks:
+      - monitor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DF_NOTIFY_CREATE_SERVICE_URL=http://monitor:8080/v1/docker-flow-monitor/reconfigure
+      - DF_NOTIFY_REMOVE_SERVICE_URL=http://monitor:8080/v1/docker-flow-monitor/remove
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+#environment and port to test monitoring
+ influx:
+    image: influxdb
+    networks:
+      - monitor
+    volumes:
+      - influx:/var/lib/influxdb
+    environment:
+      - PRE_CREATE_DB=cadvisor
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - com.df.notify=true
+        - com.df.scrapePort=8086
+        - com.df.scrapePort=8083
+        - com.df.scrapePort=8090
+        - com.df.scrapePort=8099
+
+ grafana:
+    image: grafana/grafana
+    networks:
+      - monitor
+    ports:
+      - 0.0.0.0:3000:3000
+    volumes:
+      - grafana:/var/lib/grafana
+    depends_on:
+      - influx
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - com.df.notify=true
+        - com.df.scrapePort=3000
+
+
+ cadvisor:
+    image: google/cadvisor
+    networks:
+      - monitor
+    ports:
+      - "8081:8080"
+    command: -logtostderr -docker_only -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influx:8086
+    volumes:
+      - /:/rootfs
+      - /var/run:/var/run
+      - /sys:/sys
+      - /var/lib/docker:/var/lib/docker
+    deploy:
+      mode: global
+      labels:
+        - com.df.notify=true
+        - com.df.scrapePort=8080
+
+ node-exporter:
+    image: basi/node-exporter
+    networks:
+      - monitor
+    environment:
+      - HOST_HOSTNAME=/etc/host_hostname
+    volumes:
+      - /proc:/host/proc
+      - /sys:/host/sys
+      - /:/rootfs
+      - /etc/hostname:/etc/host_hostname
+    deploy:
+      mode: global
+      labels:
+        - com.df.notify=true
+        - com.df.scrapePort=9100
+        - com.df.alertName.1=memload
+        - com.df.alertIf.1=(sum by (instance) (node_memory_MemTotal) - sum by (instance) (node_memory_MemFree + node_memory_Buffers + node_memory_Cached)) / sum by (instance) (node_memory_MemTotal) > 0.8
+        - com.df.alertName.2=diskload
+        - com.df.alertIf.2=@node_fs_limit:0.8
+    command: '-collector.procfs /host/proc -collector.sysfs /host/sys -collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($$|/)" -collector.textfile.directory /etc/node-exporter/ -collectors.enabled="conntrack,diskstats,entropy,filefd,filesystem,loadavg,mdadm,meminfo,netdev,netstat,stat,textfile,time,vmstat,ipvs"'
+
+networks:
+  monitor:
+    external: true
+
+volumes:
+  influx:
+    driver: local
+  grafana:
+    driver: local
