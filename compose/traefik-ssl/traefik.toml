@@ -11,8 +11,8 @@ address = ":8080"
   address = ":443"
     [entryPoints.https.tls]
       [[entryPoints.https.tls.certificates]]
-      CertFile = "/certs/mydomain.lan.crt"
-      KeyFile = "/certs/mydomain.lan.key"
+      CertFile = "/run/secrets/mydomain.lan.pem"
+      KeyFile = "/run/secrets/mydomain.lan.pem"
 [docker]
 endpoint = "unix:///var/run/docker.sock"
 # default domain

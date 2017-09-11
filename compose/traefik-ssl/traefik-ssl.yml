@@ -1,4 +1,4 @@
-version: "3.3"
+version: '3.3'
 
 networks:
     admin-net:
@@ -7,19 +7,18 @@ networks:
 volumes:
     data:
 
-configs:
+secrets:
+  mydomain.lan.pem:
+    file: ./mydomain.lan.pem
   traefik.toml:
-    file: ./traefik-ssl.toml
-  mydomain.lan.crt:
-    file: ./mydomain.lan.crt
-  mydomain.lan.key:
-    file: ./mydomain.lan.key
+    file: ./traefik.toml
+
 
 services:
 
     traefik-ssl:
       image: traefik
-      command: -c /dev/null --web --docker --docker.swarmmode --docker.watch --docker.domain=mydomain.lan --logLevel=DEBUG
+      command: -c /dev/null --web --docker --docker.swarmmode --docker.watch --logLevel=INFO --configFile="/run/secrets/traefik.toml"
       networks:
         - admin-net
       ports:
@@ -35,10 +34,6 @@ services:
           - "com.df.notify=true"
           - "com.df.scrapePort=8080"
           - "traefik.port=8080"
-      configs:
-      - source: traefik.toml
-        target: /etc/traefik/traefik.toml
-      - source: mydomain.lan.crt
-        target: /certs/mydomain.lan.crt
-      - source: mydomain.lan.key
-        target: /certs/mydomain.lan.key
+      secrets:
+       - mydomain.lan.pem
+       - traefik.toml

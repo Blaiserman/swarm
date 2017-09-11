@@ -1,0 +1,29 @@
+
+
+
+  registry:
+    restart: always
+    image: registry:2
+    ports:
+      - 5000:5000
+    environment:
+      REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
+      REGISTRY_HTTP_TLS_KEY: /certs/domain.key
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    volumes:
+      - /path/data:/var/lib/registry
+      - /path/certs:/certs
+      - /path/auth:/auth
+
+  docker secret create domain.crt certs/domain.crt
+  docker secret create domain.key certs/domain.key
+
+  --secret domain.crt \
+  --secret domain.key \
+  --label registry=true \
+
+
+# https://docs.docker.com/registry/configuration/#storage
+# setup multiple registry servers with the same bucket as a storage backend

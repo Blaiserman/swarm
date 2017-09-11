@@ -5,7 +5,7 @@ servicis:
  alertmanager:
     image: prom/alertmanager
     networks:
-      - monitor
+      - admin-net
     ports:
       - "9093:9093"
     volumes:
@@ -32,20 +32,20 @@ servicis:
       - GLOBAL_SCRAPE_INTERVAL=10s
       - ARG_ALERTMANAGER_URL=http://alert-manager:9093
     networks:
-      - monitor
+      - admin-net
     ports:
       - 9090:9090
 
   #alert-manager:
   #  image: vfarcic/alert-manager:slack
   #  networks:
-  #    - monitor
+  #    - admin-net
 
   # user create_alert_manager_config.sh
   #alert-manager:
   #image: prom/alertmanager
   #networks:
-  #  - monitor
+  #  - admin-net
   #secrets:
   #  - alert_manager_config
   #command: -config.file=/run/secrets/alert_manager_config -storage.path=/alertmanager
@@ -53,7 +53,7 @@ servicis:
  swarm-listener:
     image: vfarcic/docker-flow-swarm-listener
     networks:
-      - monitor
+      - admin-net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -67,7 +67,7 @@ servicis:
  influx:
     image: influxdb
     networks:
-      - monitor
+      - admin-net
     volumes:
       - influx:/var/lib/influxdb
     environment:
@@ -87,7 +87,7 @@ servicis:
  grafana:
     image: grafana/grafana
     networks:
-      - monitor
+      - admin-net
     ports:
       - 0.0.0.0:3000:3000
     volumes:
@@ -107,7 +107,7 @@ servicis:
  cadvisor:
     image: google/cadvisor
     networks:
-      - monitor
+      - admin-net
     ports:
       - "8081:8080"
     command: -logtostderr -docker_only -storage_driver=influxdb -storage_driver_db=cadvisor -storage_driver_host=influx:8086
@@ -125,7 +125,7 @@ servicis:
  node-exporter:
     image: basi/node-exporter
     networks:
-      - monitor
+      - admin-net
     environment:
       - HOST_HOSTNAME=/etc/host_hostname
     volumes:
@@ -145,7 +145,7 @@ servicis:
     command: '-collector.procfs /host/proc -collector.sysfs /host/sys -collector.filesystem.ignored-mount-points "^/(sys|proc|dev|host|etc)($$|/)" -collector.textfile.directory /etc/node-exporter/ -collectors.enabled="conntrack,diskstats,entropy,filefd,filesystem,loadavg,mdadm,meminfo,netdev,netstat,stat,textfile,time,vmstat,ipvs"'
 
 networks:
-  monitor:
+  admin-net:
     external: true
 
 volumes:
