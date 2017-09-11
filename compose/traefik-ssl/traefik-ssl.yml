@@ -18,7 +18,7 @@ services:
 
     traefik-ssl:
       image: traefik
-      command: -c /dev/null --web --docker --docker.swarmmode --docker.watch --logLevel=INFO --configFile="/run/secrets/traefik.toml"
+      command: -c /dev/null --web --docker --docker.swarmmode --docker.watch --web.metrics.prometheus --web.metrics.prometheus.buckets="0.1,0.3,1.2,5.0" --logLevel=INFO --configFile="/run/secrets/traefik.toml"
       networks:
         - admin-net
       ports:

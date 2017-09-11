@@ -1,29 +1,29 @@
-version: '3'
+version: '3.3'
 
-servicis:
+services:
 
- alertmanager:
-    image: prom/alertmanager
-    networks:
-      - admin-net
-    ports:
-      - "9093:9093"
-    volumes:
-      - /var/dockerdata/alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
-      - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
-    command: [-config.file=/etc/alertmanager/alertmanagerconfig.yml,-storage.path=/alertmanager/data]
-    labels:
-      com.docker.stack.namespace: "monitoring"
-      com.docker.service.name: "alertmanager"
-    deploy:
-      mode: replicated
-      replicas: 1
-      update_config:
-          parallelism: 1
-          delay: 60s
-      restart_policy:
-          condition: on-failure
-          max_attempts: 5
+# alertmanager:
+#    image: prom/alertmanager
+#    networks:
+#      - admin-net
+#    ports:
+#      - "9093:9093"
+#    volumes:
+#      - /var/dockerdata/alertmanager/alertmanagerconfig.yml:/etc/alertmanager/alertmanagerconfig.yml
+#      - /var/dockerdata/alertmanager/data:/etc/alertmanager/data
+#    command: [-config.file=/etc/alertmanager/alertmanagerconfig.yml,-storage.path=/alertmanager/data]
+#    labels:
+#      com.docker.stack.namespace: "monitoring"
+#      com.docker.service.name: "alertmanager"
+#    deploy:
+#      mode: replicated
+#      replicas: 1
+#      update_config:
+#          parallelism: 1
+#          delay: 60s
+#      restart_policy:
+#          condition: on-failure
+#          max_attempts: 5
 
  monitor:
     image: vfarcic/docker-flow-monitor
@@ -34,12 +34,12 @@ servicis:
     networks:
       - admin-net
     ports:
-      - 9090:9090
+      - "9090:9090"
 
-  #alert-manager:
-  #  image: vfarcic/alert-manager:slack
-  #  networks:
-  #    - admin-net
+ alert-manager:
+    image: vfarcic/alert-manager:slack
+    networks:
+      - admin-net
 
   # user create_alert_manager_config.sh
   #alert-manager:

@@ -1,1 +1,5 @@
 https://github.com/Berndinox/swarm-portworx
+
+#grafana traefik dashboard
+create prometheus source: Prometheus Prometheus http://monitor:9090
+import dashoard ID: 2870
