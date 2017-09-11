@@ -38,7 +38,7 @@ Default user and password `admin / admin`
 In Grafana, create a new `InfluxDB` data source cald `influx` , with Url `http://influx:8086` and database `cadvisor` and import new dashboard for it with `dashboard.json` file.
 Create a `Prometheus` data source cald `Prometheus`, with Url `http://docker-flow-monitor:9090`
 Go to cAdvisor's Url `http://<master node IP>:8081`
-
+import dashoard ID: 2870 (traefik) 893 (docker and system monitor) 395 (swarm monitor) 609 (swarm log and monitor)
 
 Todo:
 * prometheus.yml service config
