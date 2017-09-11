@@ -1,6 +1,7 @@
 version: "3.3"
 
 # prometheus metrics not working
+#docker service scale logging_elasticsearch=3
 
 services:
 
@@ -30,11 +31,15 @@ services:
         depends_on:
             - elasticsearch
         ports:
+            # greif
             - "12201:12201/udp"
+            # syslog
+            - "51415:51415"
             - "8082:8082"
         networks:
             - admin-net
-        command: -e "input { gelf {} } output { elasticsearch { hosts => ['elasticsearch']} stdout {} }"
+#        command: -e "input { gelf {} } output { elasticsearch { hosts => ['elasticsearch']} stdout {} }"
+        command: -e "input { gelf {} syslog { port => 51415 } } output { elasticsearch { hosts => ['elasticsearch']} stdout {} }"
         environment:
             LS_JAVA_OPTS: "-Xmx256m -Xms256m"
             TZ: "Europe/Budapest"
@@ -51,6 +56,16 @@ services:
               - "com.df.distribute=true"
               - "com.df.port=12201"
               - "com.df.port=8082"
+
+    logspout:
+        image: gliderlabs/logspout
+        command: syslog://logstash:51415
+        networks:
+            - admin-net
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+            SYSLOG_FORMAT: "rfc3164"
 
     kibana:
         image: kibana
