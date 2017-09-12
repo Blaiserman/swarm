@@ -1,0 +1,130 @@
+# mongodb cluster
+# ellastic cluster
+# graylog
+# https://hub.docker.com/r/graylog2/server/
+# https://gist.github.com/huksley/3384f3f4325536e8fa550246ecc698d5
+# https://github.com/vasetech/mongo-rs-ctrl
+# add config as secret?
+
+version: "3.3"
+
+services:
+  mongo:
+    image: mongo
+    command: mongod --replSet rs
+    networks:
+      - mongo-net
+    ports:
+      - 27017:27017
+    deploy:
+        mode: 'global'
+        endpoint_mode: dnsrr
+
+  mongo-ctrl:
+    image: vase/mongo-rs-ctrl
+    networks:
+      - mongo-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  elasticsearch:
+    image: elasticsearch
+    command: [ elasticsearch, -D, es.cluster.name'graylog, -E, network.host=0.0.0.0, -E, discovery.zen.ping.unicast.hosts=elasticsearch, -E, discovery.zen.minimum_master_nodes=1 ]
+    networks:
+      - mongo-net
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+    healthcheck:
+      test: curl -s http://localhost:9200/_cluster/health?local=true | grep green
+      interval: 30s
+      retries: 3
+    deploy:
+      mode: 'global'
+      endpoint_mode: dnsrr
+      update_config:
+        parallelism: 1
+        delay: 60s
+      restart_policy:
+        condition: none
+        max_attempts: 5
+      labels:
+        - "com.df.notify=true"
+        - "com.df.distribute=true"
+        - "com.df.port=9200"
+
+ graylog:
+    image: graylog2/server:latest
+    networks:
+      - mongo-net
+    environment:
+      # Every configuration option can be set via environment variables. Simply prefix the parameter name with GRAYLOG_ and put it all in upper case.
+      #
+      # Change to your value
+      GRAYLOG_PASSWORD_SECRET: 'saltandpeppersecret'
+      # admin:admin by default, generate your password > echo -n yourpassword | shasum -a 256
+      GRAYLOG_ROOT_PASSWORD_SHA2: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'
+      # Public external URI on host, change to yours
+      GRAYLOG_WEB_ENDPOINT_URI: 'http://192.168.99.100:9001/api'
+      GRAYLOG_ROOT_TIMEZONE: 'Europe/Budapest'
+      GRAYLOG_ELASTICSEARCH_HOSTS: 'http://elasticsearch:9200'
+      DISABLE_TELEMETRY: '1'
+      # Define your limits to indexes (30 days here)
+      GRAYLOG_ROTATION_STRATEGY: 'time'
+      GRAYLOG_ELASTICSEARCH_MAX_TIME_PER_INDEX: '1d'
+      GRAYLOG_MAX_NUMBER_OF_INDICES: '30'
+      # Fine tune memory usage
+      GRAYLOG_SERVER_JAVA_OPTS: '-Xms512m -Xmx512m -XX:NewRatio=1 -XX:MaxMetaspaceSize=128m -server -XX:+ResizeTLAB -XX:+UseConcMarkSweepGC -XX:+CMSConcurrentMTEnabled -XX:+CMSClassUnloadingEnabled -XX:+UseParNewGC -XX:-OmitStackTraceInFastThrow'
+      # Set according to your E-mail settings
+      # GRAYLOG_TRANSPORT_EMAIL_ENABLED: 'false'
+      # GRAYLOG_TRANSPORT_EMAIL_HOSTNAME: 'mail.host.com'
+      # GRAYLOG_TRANSPORT_EMAIL_PORT: '587'
+      # GRAYLOG_TRANSPORT_EMAIL_USE_AUTH: 'true'
+      # GRAYLOG_TRANSPORT_EMAIL_USE_TLS: 'true'
+      # GRAYLOG_TRANSPORT_EMAIL_USE_SSL: 'true'
+      # GRAYLOG_TRANSPORT_EMAIL_AUTH_USERNAME: 'my@email.com'
+      # GRAYLOG_TRANSPORT_EMAIL_AUTH_PASSWORD: '123'
+      # GRAYLOG_TRANSPORT_EMAIL_SUBJECT_PREFIX: '[graylog]'
+      # GRAYLOG_TRANSPORT_EMAIL_FROM_EMAIL: 'graylog@org.com'
+      # GRAYLOG_TRANSPORT_EMAIL_WEB_INTERFACE_URL: 'http://graylog/'
+      # Configure SSL for web interface
+      # GRAYLOG_WEB_TLS_CERT_FILE: /usr/share/graylog/data/config/server.crt
+      # GRAYLOG_WEB_TLS_KEY_FILE: /usr/share/graylog/data/config/server.key
+    volumes:
+      - ./journal:/usr/share/graylog/data/journal
+      - ./config:/usr/share/graylog/data/config
+    links:
+      - mongo:mongo
+      - elasticsearch:elasticsearch
+    ports:
+      - "9001:9000"
+      - "12201:12201/tcp"
+      - "12201:12201/udp"
+    depends_on:
+      - curl.graylog.conf
+      - curl.log4j2.xml
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000" ]
+      start_period: 1m
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://192.168.99.100:12201"
+
+  # Downloads graylog.conf which does not exists by default
+  curl.graylog.conf:
+    image: appropriate/curl
+    command: "curl -s -o /config/graylog.conf https://raw.githubusercontent.com/Graylog2/graylog2-images/2.3/docker/config/graylog.conf"
+    volumes:
+      - ./config:/config
+  # Downloads log4j2.xml which does not exists by default
+  curl.log4j2.xml:
+    image: appropriate/curl
+    command: "curl -s -o /config/log4j2.xml https://raw.githubusercontent.com/Graylog2/graylog2-images/2.3/docker/config/log4j2.xml"
+    volumes:
+      - ./config:/config
+
+networks:
+    mongo-net:
+      external: true

@@ -7,14 +7,20 @@ services:
 
     elasticsearch:
         image: elasticsearch
+        command: [ elasticsearch, -E, network.host=0.0.0.0, -E, discovery.zen.ping.unicast.hosts=elasticsearch, -E, discovery.zen.minimum_master_nodes=1 ]
         networks:
             - admin-net
         volumes:
             - elasticsearch:/usr/share/elasticsearch/data
         environment:
             ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+        healthcheck:
+            test: curl -s http://localhost:9200/_cluster/health?local=true | grep green
+            interval: 30s
+            retries: 3
         deploy:
-            mode: replicated
+            mode: 'global'
+            endpoint_mode: dnsrr
             update_config:
                 parallelism: 1
                 delay: 60s
