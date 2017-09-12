@@ -1,0 +1,34 @@
+version: "3.3"
+
+services:
+  mongo:
+    image: mongo
+    command: mongod --replSet rs
+    networks:
+      - mongo-net
+#    ports:
+#      - 27017:27017
+    deploy:
+        mode: global
+        endpoint_mode: dnsrr
+#        mode: replicated
+#        replicas: 3
+# vulume?
+
+  mongo-ctrl:
+    image: vase/mongo-rs-ctrl
+    networks:
+      - mongo-net
+    environment:
+# mo_ is the name of the stack (docker stack deploy -c mongo.yml mo)
+      - "SERVICE_NAME=mo_mongo"
+      - "NETWORK_NAME=mongo-net"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+        placement:
+          constraints:
+            - node.role == manager
+networks:
+   mongo-net:
+#      external: true

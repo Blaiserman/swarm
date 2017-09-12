@@ -14,11 +14,12 @@ services:
     command: mongod --replSet rs
     networks:
       - mongo-net
-    ports:
-      - 27017:27017
+#    ports:
+#      - 27017:27017
     deploy:
         mode: 'global'
         endpoint_mode: dnsrr
+
 
   mongo-ctrl:
     image: vase/mongo-rs-ctrl
@@ -26,10 +27,15 @@ services:
       - mongo-net
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+        placement:
+          constraints:
+            - node.role == manager
 
+#-D, es.cluster.name'graylog, 
   elasticsearch:
     image: elasticsearch
-    command: [ elasticsearch, -D, es.cluster.name'graylog, -E, network.host=0.0.0.0, -E, discovery.zen.ping.unicast.hosts=elasticsearch, -E, discovery.zen.minimum_master_nodes=1 ]
+    command: [ elasticsearch, -E, network.host=0.0.0.0, -E, discovery.zen.ping.unicast.hosts=elasticsearch, -E, discovery.zen.minimum_master_nodes=1 ]
     networks:
       - mongo-net
     volumes:
@@ -54,7 +60,7 @@ services:
         - "com.df.distribute=true"
         - "com.df.port=9200"
 
- graylog:
+  graylog:
     image: graylog2/server:latest
     networks:
       - mongo-net
@@ -94,26 +100,19 @@ services:
     volumes:
       - ./journal:/usr/share/graylog/data/journal
       - ./config:/usr/share/graylog/data/config
-    links:
-      - mongo:mongo
-      - elasticsearch:elasticsearch
     ports:
       - "9001:9000"
       - "12201:12201/tcp"
       - "12201:12201/udp"
-    depends_on:
-      - curl.graylog.conf
-      - curl.log4j2.xml
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9000" ]
-      start_period: 1m
     logging:
       driver: gelf
       options:
         gelf-address: "udp://192.168.99.100:12201"
 
   # Downloads graylog.conf which does not exists by default
-  curl.graylog.conf:
+  #curl.graylog.conf:
     image: appropriate/curl
     command: "curl -s -o /config/graylog.conf https://raw.githubusercontent.com/Graylog2/graylog2-images/2.3/docker/config/graylog.conf"
     volumes:
@@ -128,3 +127,7 @@ services:
 networks:
     mongo-net:
       external: true
+
+volumes:
+    elasticsearch:
+        driver: local
