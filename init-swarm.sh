@@ -95,6 +95,21 @@ create)
       docker-machine scp -r ./compose node$i:/home/docker/
    done
    ;;
+rancheros)
+    test $2
+
+    for (( i=1; i<=$N; i++ ))
+    do
+      docker-machine create -d virtualbox --virtualbox-boot2docker-url https://releases.rancher.com/os/latest/rancheros.iso node$i
+      sleep 10
+      #docker-machine ssh node$i sudo modprobe target_core_user
+      #docker-machine ssh node$i sudo mount -t configfs none /sys/kernel/config
+      docker-machine scp -r ./compose node$i:/home/docker/
+      docker-machine ssh node$i sudo mkdir /etc/pwx
+      docker-machine ssh node$i sudo chown -R docker:docker /etc/pwx
+      docker-machine ssh node$i cp /home/docker/compose/portworx/config.json /etc/pwx
+    done
+   ;;
 start)
   test $2
   for (( i=1; i<=$N; i++ ))
