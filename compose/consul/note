@@ -1,0 +1,3 @@
+# for consul V2
+## first
+docker node update node1 --label-add access=consul_seed
