@@ -1,0 +1,30 @@
+#Administrator username and password password
+
+version: '3.3'
+
+services:
+  couchbase-master:
+    image: arungupta/couchbase:swarm
+    ports:
+      - 8091:8091
+    environment:
+      - TYPE=MASTER
+      - AUTO_REBALANCE=true
+    networks:
+      - couchdb-net
+
+  couchbase-worker:
+    image: arungupta/couchbase:swarm
+#    ports:
+#      - 8091:8091
+    environment:
+      - TYPE=WORKER
+      - COUCHBASE_MASTER=couchbase-master.couchbase
+    networks:
+      - couchdb-net
+    deploy:
+      replicas: 2
+
+networks:
+  couchdb-net:
+    driver: overlay

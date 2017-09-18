@@ -163,9 +163,9 @@ weave-net)
     test $2
    for (( i=1; i<=$N; i++ ))
    do
-      docker-machine ssh node$i docker plugin install --grant-all-permissions store/weaveworks/net-plugin:2.0.1
+      docker-machine ssh node$i docker plugin install --grant-all-permissions store/weaveworks/net-plugin:latest_release
    done
-   docker-machine ssh node1 docker network create --driver=store/weaveworks/net-plugin:2.0.1 weavenet
+   docker-machine ssh node1 docker network create --driver=store/weaveworks/net-plugin:latest_release --attachable admin-net
    ;;
 stop)
  test $2

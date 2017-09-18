@@ -1,0 +1,54 @@
+version: '3.3'
+
+services:
+  node1:
+    image: hauptmedia/mariadb:10.1
+    hostname: node1
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=test
+      - REPLICATION_PASSWORD=test
+      - MYSQL_DATABASE=maria
+      - MYSQL_USER=maria
+      - MYSQL_PASSWORD=test
+      - GALERA=On
+      - NODE_NAME=node1
+      - CLUSTER_NAME=maria_cluster
+      - CLUSTER_ADDRESS=gcomm://
+    command: --wsrep-new-cluster
+    networks:
+      - galera-net
+
+  node2:
+    image: hauptmedia/mariadb:10.1
+    hostname: node2
+    ports:
+      - 3306:3306
+    environment:
+      - REPLICATION_PASSWORD=test
+      - GALERA=On
+      - NODE_NAME=node2
+      - CLUSTER_NAME=maria_cluster
+      - CLUSTER_ADDRESS=gcomm://node1
+    networks:
+      - galera-net
+
+  node3:
+    image: hauptmedia/mariadb:10.1
+    hostname: node3
+    ports:
+      - 3306:3306
+    environment:
+      - REPLICATION_PASSWORD=test
+      - GALERA=On
+      - NODE_NAME=node3
+      - CLUSTER_NAME=maria_cluster
+      - CLUSTER_ADDRESS=gcomm://node1
+    networks:
+      - galera-net
+
+networks:
+  galera-net:
+    driver: overlay
+#    driver:store/weaveworks/net-plugin:latest_release
