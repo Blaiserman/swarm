@@ -1,0 +1,36 @@
+#version: '3.3'
+services:
+  cockroachdb1:
+    image: cockroachdb/cockroach
+    hostname: cockroachdb1
+    command: start --logtostderr --certs-dir=/run/secrets --join=cockroachdb-1:26257
+    networks:
+      - cockroacnet
+    volumes:
+      - cockroachdb1-data:/cockroach/cockroach-data
+    secrets:
+--secret source=ca-crt,target=ca.crt \
+--secret source=cockroachdb-1-crt,target=node.crt \
+--secret source=cockroachdb-1-key,target=node.key,mode=0600 \
+--secret source=cockroachdb-root-crt,target=client.root.crt \
+--secret source=cockroachdb-root-key,target=client.root.key,mode=0600 \
+
+secrets:
+  mydomain.lan.pem:
+    file: ./mydomain.lan.pem
+  traefik.toml:
+    file: ./traefik.toml
+
+networks:
+  dc1ring:
+    external: true
+
+volumes:
+  cockroachdb1-data:
+    driver: minio/minfs
+    driver_opts:
+      endpoint: http://192.168.99.100:9001
+      access-key: minio
+      secret-key: minio123
+      bucket: cockroachdb1
+      opts: "uid=1000,gid=1000"

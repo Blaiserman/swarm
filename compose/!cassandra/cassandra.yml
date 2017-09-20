@@ -1,0 +1,94 @@
+version: '3.3'
+services:
+  DC1N1:
+    image: cassandra:3.10 # latest 3.11
+    command: bash -c 'if [ -z "$$(ls -A /var/lib/cassandra/)" ] ; the sleep 0 ; fi && /docker-entrypoint.sh cassandra -f'
+    networks:
+      - dc1ring
+    volumes:
+      - dc1n1-data:/var/lib/cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=dev_cluster
+      - CASSANDRA_SEEDS=DC1N1
+    expose:
+      - 7000
+      - 7001
+      - 7199
+      - 9042
+      - 9160
+    ulimit:
+      memlock: -1
+      nproc: 32768
+      nofile: 100000
+
+  DC1N2:
+    image: cassandra:3.10 # latest 3.11
+    command: bash -c 'if [ -z "$$(ls -A /var/lib/cassandra/)" ] ; the sleep 60 ; fi && /docker-entrypoint.sh cassandra -f'
+    networks:
+      - dc1ring
+    volumes:
+      - dc1n2-data:/var/lib/cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=dev_cluster
+      - CASSANDRA_SEEDS=DC1N1
+    expose:
+      - 7000
+      - 7001
+      - 7199
+      - 9042
+      - 9160
+    ulimit:
+      memlock: -1
+      nproc: 32768
+      nofile: 100000
+
+  DC1N3:
+    image: cassandra:3.10 # latest 3.11
+    command: bash -c 'if [ -z "$$(ls -A /var/lib/cassandra/)" ] ; the sleep 120 ; fi && /docker-entrypoint.sh cassandra -f'
+    networks:
+      - dc1ring
+    volumes:
+      - dc1n3-data:/var/lib/cassandra
+    environment:
+      - CASSANDRA_CLUSTER_NAME=dev_cluster
+      - CASSANDRA_SEEDS=DC1N1
+    expose:
+      - 7000
+      - 7001
+      - 7199
+      - 9042
+      - 9160
+    ulimit:
+      memlock: -1
+      nproc: 32768
+      nofile: 100000
+
+networks:
+  dc1ring:
+    external: true
+
+volumes:
+  dc1n1-data:
+    driver: minio/minfs
+    driver_opts:
+      endpoint: http://192.168.99.100:9001
+      access-key: minio
+      secret-key: minio123
+      bucket: cassandra-dc1n1
+      opts: "uid=1000,gid=1000"
+  dc1n2-data:
+    driver: minio/minfs
+    driver_opts:
+      endpoint: http://192.168.99.100:9001
+      access-key: minio
+      secret-key: minio123
+      bucket: cassandra-dc1n2
+      opts: "uid=1000,gid=1000"
+  dc1n3-data:
+    driver: minio/minfs
+    driver_opts:
+      endpoint: http://192.168.99.100:9001
+      access-key: minio
+      secret-key: minio123
+      bucket: cassandra-dc1n3
+      opts: "uid=1000,gid=1000"

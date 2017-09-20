@@ -8,16 +8,39 @@ services:
       - "9000:9000"
     command: -H unix:///var/run/docker.sock
     volumes:
+      - portainer-data:/data
       - /var/run/docker.sock:/var/run/docker.sock
-#     - /opt/portainer/data:/data
+    networks:
+      - dc1ring
     deploy:
       labels:
         - "com.df.notify=true"
         - "com.df.scrapePort=9000"
         - "traefik.port=9000"
+        - "traefik.frontend.rule=Path:/portainer"
+        - "traefik.docker.network=dc1ring"
+      placement:
+        constraints:
+          - node.role == manager
 
   watchtower:
     image: v2tec/watchtower
     command: --cleanup portainer-app portainer-watchtower portainer/templates
+    networks:
+      - dc1ring
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  dc1ring:
+    external: true
+
+volumes:
+  portainer-data:
+    driver: minio/minfs
+    driver_opts:
+      endpoint: http://192.168.99.100:9001
+      access-key: minio
+      secret-key: minio123
+      bucket: portainer
+      opts: "uid=1000,gid=1000"

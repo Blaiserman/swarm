@@ -1,3 +1,17 @@
+TODO:
+ - swarm-init (4 node 3 master ???)
+    * install minifs plugin on all posts
+    * start minio cluster [ ]
+      - traefik variables [ ]
+    * start traefik [ ]
+    * start single graylog [ ]
+      - traefik variables [ ]
+    * start monitoring stack [ ]
+      - traefik variables [ ]
+    * portainer ssl
+      - traefik variables [ ]
+      - minio volume
+
 https://github.com/Berndinox/swarm-portworx
 
 #grafana traefik dashboard
