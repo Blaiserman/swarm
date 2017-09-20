@@ -9,3 +9,21 @@ docker network create --driver overlay
 --subnet 10.0.9.0/24
 
 docker network create --driver=store/weaveworks/net-plugin:latest_release --attachable admin-net
+
+
+https://store.docker.com/plugins/weave-net-plugin/plans/bc0362d7-a1fe-4af9-9555-49c9445f9a38?tab=instructions
+docker service create \
+--name couchbase \
+--replicas 1 \
+--network admin-net \
+-p 8091:8091 \
+arungupta/couchbase
+
+docker service create \
+--name workers \
+--replicas 2 \
+--network admin-net \
+-e TYPE=WORKER \
+arungupta/couchbase
+
+docker run -it --network admin-net benhall/dig dig couchbase.weave.local

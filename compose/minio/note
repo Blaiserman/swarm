@@ -1,0 +1,27 @@
+echo "minio" | docker secret create access_key -
+echo "minio123" | docker secret create secret_key -
+
+
+docker node update node1 --label-add node=node1
+docker node update node2 --label-add node=node2
+docker node update node3 --label-add node=node3
+
+docker service ps --no-trunc minio_minio1
+docker service logs minio_minio1
+
+----------
+docker plugin install minio/minfs
+
+docker volume create -d minio/minfs \
+--name bucket-dev-e \
+-o endpoint=http://192.168.99.100:9001/ \
+-o access-key=minio \
+-o secret-key=minio123 \
+-o bucket=bucket-dev-e
+
+docker volume ls
+
+docker run -d --name nginxtest1 -p 80:80 -v bucket-dev-e:/usr/share/nginx/html nginx
+
+---
+http://firepress.org/blog/the-complete-guide-to-attach-a-docker-volume-with-minio-on-your-docker-swarm-cluster/

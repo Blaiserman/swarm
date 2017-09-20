@@ -1,13 +1,12 @@
-#error
 version: '3.3'
 
 services:
   minio1:
-    image: minio/minio:RELEASE.2017-08-05T00-00-53Z
+    image: minio/minio:edge
     volumes:
-      - /export
-#    ports:
-#      - "9001:9000"
+      - /mnt/sda1/minio1:/export
+    ports:
+      - "9001:9000"
     networks:
       - minio_distributed
     deploy:
@@ -15,17 +14,20 @@ services:
         delay: 10s
         max_attempts: 10
         window: 60s
+      placement:
+        constraints:
+          - "node.labels.node == node1"
     command: server http://minio1/export http://minio2/export http://minio3/export http://minio4/export
     secrets:
       - secret_key
       - access_key
 
   minio2:
-    image: minio/minio:RELEASE.2017-08-05T00-00-53Z
+    image: minio/minio:edge
     volumes:
-      - /export
-#    ports:
-#      - "9002:9000"
+      - /mnt/sda1/minio2:/export
+    ports:
+      - "9002:9000"
     networks:
       - minio_distributed
     deploy:
@@ -33,17 +35,20 @@ services:
         delay: 10s
         max_attempts: 10
         window: 60s
+      placement:
+        constraints:
+          - "node.labels.node == node2"
     command: server http://minio1/export http://minio2/export http://minio3/export http://minio4/export
     secrets:
       - secret_key
       - access_key
 
   minio3:
-    image: minio/minio:RELEASE.2017-08-05T00-00-53Z
+    image: minio/minio:edge
     volumes:
-      - /export
-#    ports:
-#      - "9003:9000"
+      - /mnt/sda1/minio3:/export
+    ports:
+      - "9003:9000"
     networks:
       - minio_distributed
     deploy:
@@ -51,17 +56,20 @@ services:
         delay: 10s
         max_attempts: 10
         window: 60s
+      placement:
+        constraints:
+          - "node.labels.node == node3"
     command: server http://minio1/export http://minio2/export http://minio3/export http://minio4/export
     secrets:
       - secret_key
       - access_key
 
   minio4:
-    image: minio/minio:RELEASE.2017-08-05T00-00-53Z
+    image: minio/minio:edge
     volumes:
-      - /export
-#    ports:
-#      - "9004:9000"
+      - /mnt/sda1/minio4:/export
+    ports:
+      - "9004:9000"
     networks:
       - minio_distributed
     deploy:
@@ -69,6 +77,9 @@ services:
         delay: 10s
         max_attempts: 10
         window: 60s
+      placement:
+        constraints:
+          - "node.labels.node == node3"
     command: server http://minio1/export http://minio2/export http://minio3/export http://minio4/export
     secrets:
       - secret_key
