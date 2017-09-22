@@ -10,13 +10,7 @@ services:
     environment:
       - CASSANDRA_CLUSTER_NAME=dev_cluster
       - CASSANDRA_SEEDS=DC1N1
-    expose:
-      - 7000
-      - 7001
-      - 7199
-      - 9042
-      - 9160
-    ulimit:
+    ulimits:
       memlock: -1
       nproc: 32768
       nofile: 100000
@@ -31,13 +25,7 @@ services:
     environment:
       - CASSANDRA_CLUSTER_NAME=dev_cluster
       - CASSANDRA_SEEDS=DC1N1
-    expose:
-      - 7000
-      - 7001
-      - 7199
-      - 9042
-      - 9160
-    ulimit:
+    ulimits:
       memlock: -1
       nproc: 32768
       nofile: 100000
@@ -52,13 +40,7 @@ services:
     environment:
       - CASSANDRA_CLUSTER_NAME=dev_cluster
       - CASSANDRA_SEEDS=DC1N1
-    expose:
-      - 7000
-      - 7001
-      - 7199
-      - 9042
-      - 9160
-    ulimit:
+    ulimits:
       memlock: -1
       nproc: 32768
       nofile: 100000

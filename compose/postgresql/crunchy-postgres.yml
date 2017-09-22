@@ -1,0 +1,49 @@
+version: '3.3'
+
+services:
+  postgres-master:
+    image: 'crunchydata/crunchy-postgres:centos7-9.6-1.5.1'
+    environment:
+      - PG_DATABASE=userdb
+      - PGHOST=/tmp
+      - PG_MODE=master
+      - PG_USER=testuser
+      - PG_PASSWORD=password
+      - PG_ROOT_PASSWORD=password
+      - PG_MASTER_USER=master
+      - PG_MASTER_PORT=5432
+      - PG_MASTER_PASSWORD=password
+    ports:
+      - '5432:5432'
+    volumes:
+      - 'postgres-master:/pgdata'
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  postgres-salve:
+    image: 'crunchydata/crunchy-postgres:centos7-9.6-1.5.1'
+    environment:
+      - PG_DATABASE=userdb
+      - PGHOST=/tmp
+      - PG_MODE=slave
+      - PG_USER=testuser
+      - PG_PASSWORD=password
+      - PG_ROOT_PASSWORD=password
+      - PG_MASTER_USER=master
+      - PG_MASTER_PORT=5432
+      - PG_MASTER_PASSWORD=password
+      - PG_MASTER_HOST=postgres-master
+#    ports:
+#      - '5432:5432'
+    volumes:
+      - 'postgres-slave:/pgdata'
+
+volumes:
+  postgres-master:
+  postgres-slave:
+
+
+# test master:
+# docker exec -it $(docker ps -q) psql -U postgres -c 'table pg_stat_replication' postgres

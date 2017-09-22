@@ -1,0 +1,127 @@
+version: '3.3'
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    networks:
+      - gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        ## GitLab configuration settings
+        ##! Check out the latest version of this file to know about the different
+        ##! settings that can be configured by this file, which may be found at:
+        ##! https://gitlab.com/gitlab-org/omnibus-gitlab/raw/master/files/gitlab-config-template/gitlab.rb.template
+
+        ## GitLab URL
+        ##! URL on which GitLab will be reachable.
+        ##! For more details on configuring external_url see:
+        ##! https://docs.gitlab.com/omnibus/settings/configuration.html#configuring-the-external-url-for-gitlab
+        external_url 'http://gitlab.example.com'
+
+        ################################################################################
+        ## gitlab.yml configuration
+        ##! Docs: https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md
+        ################################################################################
+
+        gitlab_rails['gitlab_ssh_host'] = 'ssh.gitlab.example.com'
+        gitlab_rails['time_zone'] = 'Europe/Budapest'
+
+        ## Email settings
+        # Uncomment and set to false if you need to disable email sending from GitLab (default: true)
+        # email_enabled: true
+        # Email address used in the "From" field in mails sent by GitLab
+        # email_from: example@example.com
+        # email_display_name: GitLab
+        # email_reply_to: noreply@example.com
+        # email_subject_suffix: ''
+
+
+        ################################################################################
+        ## Container Registry settings
+        ##! Docs: https://docs.gitlab.com/ce/administration/container_registry.html
+        ################################################################################
+
+        registry_external_url 'http://registry.gitlab.example.com'
+
+        ################################################################################
+        ## GitLab Pages
+        ##! Docs: https://docs.gitlab.com/ce/pages/administration.html
+        ################################################################################
+
+        pages_external_url 'http://pages.example.com/'
+
+        ################################################################################
+        ## GitLab Mattermost
+        ##! Docs: https://docs.gitlab.com/omnibus/gitlab-mattermost
+        ################################################################################
+
+        mattermost_external_url 'http://mattermost.example.com'
+
+        mattermost['webrtc_enable'] = true
+        mattermost['webrtc_gateway_websocket_url'] = 'ws://mattermost.example.com:8188'
+        mattermost['webrtc_gateway_admin_url'] = 'http://mattermost.example.com:7088/admin'
+        mattermost['webrtc_gateway_admin_secret'] = 'janusoverlord'
+
+        ################################################################################
+        ## Gitaly
+        ##! Docs: https://docs.gitlab.com/ee/administration/gitaly/index.html#gitaly
+        ################################################################################
+
+        gitaly['enable'] = true
+
+        ################################################################################
+        ### GitLab database settings
+        ###! Docs: https://docs.gitlab.com/omnibus/settings/database.html
+        ###! **Only needed if you use an external database.**
+        ################################################################################
+        # gitlab_rails['db_collation'] = nil
+        # gitlab_rails['db_pool'] = 10
+        # gitlab_rails['db_socket'] = nil
+        # gitlab_rails['db_sslmode'] = nil
+        # gitlab_rails['db_sslrootcert'] = nil
+        # gitlab_rails['db_prepared_statements'] = true
+        # gitlab_rails['db_statements_limit'] = 1000
+
+        # postgresql['enable'] = false
+        # gitlab_rails['db_username'] = "gitlab"
+        # gitlab_rails['db_password'] = "gitlab"
+        # gitlab_rails['db_host'] = "postgresql"
+        # gitlab_rails['db_port'] = "5432"
+        # gitlab_rails['db_database'] = "gitlabhq_production"
+        # gitlab_rails['db_adapter'] = 'postgresql'
+        # gitlab_rails['db_encoding'] = 'utf8'
+
+        ################################################################################
+    volumes: # minio buckets?
+      - /etc/gitlab
+      - /var/log/gitlab
+      - /var/opt/gitlab
+    ports:
+      - "2222:22"
+    deploy:
+      labels:
+        - "com.df.notify=true"
+        - "com.df.scrapePort=80"
+        - "traefik.port=80"
+        - "traefik.frontend.passHostHeader=true"
+        - "traefik.frontend.rule=Host:gitlab.example.com"
+        - "traefik.frontend.rule=Host:registry.gitlab.example.com"
+        - "traefik.frontend.rule=Host:pages.example.com"
+        - "traefik.frontend.rule=Host:mattermost.example.com"
+        - "traefik.docker.network=gitlab"
+      restart_policy:
+        condition: on-failure
+
+  mattermost-webrtc:
+    image: mattermost/webrtc:latest
+    deploy:
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "7088:7088"
+      - "8188:8188"
+    networks:
+      - gitlab
+
+networks:
+  gitlab:
+    external: true

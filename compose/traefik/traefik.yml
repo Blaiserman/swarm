@@ -7,14 +7,14 @@ networks:
 volumes:
     data:
 
-configs:
+secrets:
   traefik.toml:
     file: ./traefik.toml
 
 services:
 
     traefik:
-      image: traefik
+      image: traefik:1.4
       command: -c /dev/null --web --docker --docker.swarmmode --docker.watch --docker.domain=mydomain.lan --logLevel=DEBUG
       networks:
         - admin-net
@@ -26,11 +26,9 @@ services:
 #       - /dockerdata/traefik/log:/log
       deploy:
         mode: global
-      configs:
-      - source: traefik.toml
-        target: /etc/traefik/traefik.toml
-    deploy:
-      labels:
-        - "com.df.notify=true"
-        - "com.df.scrapePort=8080"
-        - "traefik.port=8080"
+        labels:
+          - "com.df.notify=true"
+          - "com.df.scrapePort=8080"
+          - "traefik.port=8080"
+      secrets:
+       - traefik.toml

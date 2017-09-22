@@ -73,6 +73,17 @@ certcopy(){
   docker-machine ssh node1 touch /dockerdata/certlock.lock
 }
 
+passwd(){
+  test $1
+  for (( i=1; i<=$N; i++ ))
+  do
+  docker-machine ssh node$i "sudo passwd docker <<EOF
+  Password1
+  Password1
+  EOF"
+ done
+}
+
 #--------------------------------------------------------------------------------------------------------------
 
 case "$1" in
@@ -94,6 +105,7 @@ create)
       # docker-machine create -d virtualbox --virtualbox-boot2docker-url https://releases.rancher.com/os/latest/rancheros.iso
       docker-machine scp -r ./compose node$i:/home/docker/
    done
+   passwd $2
    ;;
 rancheros)
     test $2

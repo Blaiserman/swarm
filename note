@@ -12,6 +12,24 @@ TODO:
       - traefik variables [ ]
       - minio volume
 
+
+-------------------------------------------------------
+DB cluster
+  - !cassandra
+  - !cockroachdb
+  - !couchdb
+  - ?CrateDB
+    * https://crate.io/a/a-sql-database-with-docker-swarm-mode/
+  - ?influxdb
+  - ?postgresql
+    * stolon
+    * http://info.crunchydata.com/blog/easy-postgresql-cluster-recipe-using-docker-1.12
+    * BDR
+    * postgresql + pgpool
+  - mariadb
+
+
+
 https://github.com/Berndinox/swarm-portworx
 
 #grafana traefik dashboard

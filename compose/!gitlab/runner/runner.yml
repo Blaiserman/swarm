@@ -1,0 +1,21 @@
+version: '3.3'
+services:
+
+# https://docs.gitlab.com/runner/install/docker.html
+  gitlab-runner:
+    container_name: gitlab-runner
+    image: gitlab/gitlab-runner:alpine
+    command: gitlab-runner register
+    volumes:
+      - /etc/gitlab-runner
+    deploy:
+      mode: global
+    environment:
+      - CI_SERVER_URL=
+      - RUNNER_NAME=
+      - REGISTRATION_TOKEN=
+      - REGISTER_NON_INTERACTIVE=true
+
+networks:
+  gitlab:
+    external: true
