@@ -4,6 +4,9 @@ services:
     image: gitlab/gitlab-ce:latest
     environment:
       GITLAB_OMNIBUS_CONFIG: |
+        ################################################################################
+        # global
+        ################################################################################
         gitlab_rails['gitlab_default_projects_features_issues'] = true
         gitlab_rails['gitlab_default_projects_features_merge_requests'] = true
         gitlab_rails['gitlab_default_projects_features_wiki'] = true
@@ -13,8 +16,18 @@ services:
         external_url 'http://gitlab.mydomain.lan'
         gitlab_rails['gitlab_ssh_host'] = 'ssh.gitlab.mydomain.lan'
         gitlab_rails['time_zone'] = 'Europe/Budapest'
+        ################################################################################
+        # gitlab docker registry
+        ################################################################################
         gitlab_rails['registry_enabled'] = true
         registry_external_url 'http://registry.gitlab.mydomain.lan'
+        ################################################################################
+        # gitlab pages
+        ################################################################################
+        gitlab_pages['enable'] = true
+        pages_nginx['enable'] = true
+        pages_external_url 'http://pages.gitlab.mydomain.lan/'
+        # gitlab_pages['metrics_address'] = ":9235"
     volumes:
       - /etc/gitlab
       - /var/log/gitlab

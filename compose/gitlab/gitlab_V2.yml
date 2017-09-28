@@ -1,0 +1,38 @@
+version: '3.3'
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+      # global
+        gitlab_rails['gitlab_default_projects_features_issues'] = true
+        gitlab_rails['gitlab_default_projects_features_merge_requests'] = true
+        gitlab_rails['gitlab_default_projects_features_wiki'] = true
+        gitlab_rails['gitlab_default_projects_features_snippets'] = true
+        gitlab_rails['gitlab_default_projects_features_builds'] = true
+        gitlab_rails['gitlab_default_projects_features_container_registry'] = true
+        external_url 'http://gitlab.mydomain.lan'
+        gitlab_rails['gitlab_ssh_host'] = 'ssh.gitlab.mydomain.lan'
+        gitlab_rails['time_zone'] = 'Europe/Budapest'
+        gitlab_rails['registry_enabled'] = true
+        registry_external_url 'http://registry.gitlab.mydomain.lan'
+    volumes:
+      - /etc/gitlab
+      - /var/log/gitlab
+      - /var/opt/gitlab
+    ports:
+#      - "80:80"
+      - "2222:22"
+    deploy:
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.port=80"
+        - "traefik.frontend.rule=Host:gitlab.mydomain.lan, Host:registry.gitlab.mydomain.lan"
+        - "traefik.docker.network=gitlab"
+    networks:
+        - gitlab
+
+networks:
+  gitlab:
+    external: true

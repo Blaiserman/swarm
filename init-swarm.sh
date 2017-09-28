@@ -78,9 +78,18 @@ passwd(){
   for (( i=1; i<=$N; i++ ))
   do
   docker-machine ssh node$i "sudo passwd docker <<EOF
-  Password1
-  Password1
-  EOF"
+Password1
+Password1
+EOF"
+ done
+}
+
+disableTLS(){
+  test $1
+  for (( i=1; i<=$N; i++ ))
+  do
+  docker-machine ssh node$i "sudo sed -i 's#DOCKER_TLS=auto#DOCKER_TLS=no#g' /var/lib/boot2docker/profile"
+  docker-machine ssh node$i "sudo /etc/init.d/docker restart"
  done
 }
 
@@ -106,7 +115,16 @@ create)
       docker-machine scp -r ./compose node$i:/home/docker/
    done
    passwd $2
+   disableTLS $2
    ;;
+create-1)
+  docker-machine create --driver virtualbox --virtualbox-memory "2048" node1
+  # --virtualbox-disk-size "20000"  --virtualbox-cpu-count "1" --virtualbox-memory "1024"
+  # docker-machine create -d virtualbox --virtualbox-boot2docker-url https://releases.rancher.com/os/latest/rancheros.iso node1
+  docker-machine scp -r ./compose node1:/home/docker/
+  passwd 1
+  disableTLS 1
+  ;;
 rancheros)
     test $2
 

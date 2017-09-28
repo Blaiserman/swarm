@@ -1,0 +1,45 @@
+docker network create --attachable --driver overlay gitlab
+
+docker build --label 1.0 -t gitlab-runner /home/docker/compose/!gitlab/runner/
+docker images
+
+docker service create \
+--name gitlab-runner-3 \
+--host gitlab.mydomain.lan:192.168.99.101 \
+--network gitlab \
+--constraint 'node.role == manager' \
+gitlab-runner
+
+
+# a tokent secretben tarolni?
+docker exec -it 6ce2ddd67e3e \
+gitlab-runner register \
+--non-interactive \
+--tag-list "swarm, ubutu" \
+--name "runner-docker-3" \
+--url "http://gitlab" \
+--registration-token "4HTfmZgKyngNco9MLDPT" \
+--executor "shell"
+
+
+########################################################
+# .gitlab-ci.yml
+stages:
+  - test
+
+deploy-to-swarm:
+  stage: test
+  variables:
+    DOCKER_HOST: tcp://192.168.99.101:2376
+    SERVICE_NAME: foobar
+  image: docker:latest
+  script:
+    - docker -H $DOCKER_HOST ps
+    - docker -H $DOCKER_HOST stack deploy --compose-file=docker-stack-compose.yml test-stack
+  tags:
+    - swarm
+
+----
+https://gist.github.com/boiyaa
+https://github.com/JNPRAutomate/gitlab-demo/blob/master/docker.runner.start.sh
+https://morph027.gitlab.io/post/gitlab-ci-with-docker-swarm/

@@ -46,4 +46,6 @@ volumes:
 
 
 # test master:
+# docker ps
 # docker exec -it $(docker ps -q) psql -U postgres -c 'table pg_stat_replication' postgres
+# docker exec -it 27510c7a8044 psql -U postgres -c 'CREATE EXTENSION pg_trgm;' gitlab
