@@ -222,6 +222,13 @@ destroy)
 certgen)
    certgen  $2
    ;;
+minifs)
+    test $2
+    for (( i=1; i<=$N; i++ ))
+    do
+      docker-machine ssh node$i docker plugin install minio/minfs
+    done
+   ;;
 *) echo "Usage:  ./init-swarm.sh <command> <node number>
 	./init-swarm.sh create|init|promote|start|stop|destroy-swarm|destroy <node number>
   ./init-swarm.sh add-disk|weave-net|scp <node number>

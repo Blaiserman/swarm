@@ -8,7 +8,7 @@ services:
     ports:
       - "9001:9000"
     networks:
-      - minio_distributed
+      - admin-net
     deploy:
       restart_policy:
         delay: 10s
@@ -29,7 +29,7 @@ services:
     ports:
       - "9002:9000"
     networks:
-      - minio_distributed
+      - admin-net
     deploy:
       restart_policy:
         delay: 10s
@@ -50,7 +50,7 @@ services:
     ports:
       - "9003:9000"
     networks:
-      - minio_distributed
+      - admin-net
     deploy:
       restart_policy:
         delay: 10s
@@ -71,7 +71,7 @@ services:
     ports:
       - "9004:9000"
     networks:
-      - minio_distributed
+      - admin-net
     deploy:
       restart_policy:
         delay: 10s
@@ -86,7 +86,7 @@ services:
       - access_key
 
 networks:
-  minio_distributed:
+  admin-net:
     driver: overlay
 
 secrets:

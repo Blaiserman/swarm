@@ -1,13 +1,15 @@
 TODO:
+ - create nodes 3 db
  - swarm-init (4 node 3 master ???)
-    * install minifs plugin on all posts
-    * start minio cluster [ ]
+    * install minifs plugin on all nodes
+    * start minio cluster [X]
       - traefik variables [ ]
     * start traefik [ ]
     * start single graylog [ ]
       - traefik variables [ ]
     * start monitoring stack [ ]
       - traefik variables [ ]
+      - minio volume [ ]
     * portainer ssl
       - traefik variables [ ]
       - minio volume
