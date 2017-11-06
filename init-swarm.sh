@@ -80,7 +80,7 @@ done
 config(){
  user=`whoami`
  rm -rf /c/Users/$user/Documents/Docker/*
- mkdir -p /c/Users/$user/Documents/Docker/{certs,config,compose,minio,volumes}
+ mkdir -p /c/Users/$user/Documents/Docker/{certs,registry,compose,minio,volumes}
 
  FOR1 $1 "docker-machine ssh node" "ln -s /c/Users/$user/Documents/Docker /home/docker/Docker"
  FOR1 $1 "docker-machine ssh node" "\"sudo ln -s /home/docker/Docker/volumes /mnt/sda1/var/lib/docker/volumes\""
@@ -140,10 +140,11 @@ create)
    # ip and host to /etc/hosts
    ;;
 config)
+   FOR1 $2 "docker-machine ssh node" "sudo sysctl -w vm.max_map_count=262144"
    config $2      # OK
-   minfs $2       # OK
+   #minfs $2       # OK
    # etc3 $2
-   weave-scope $2 # OK
+   #weave-scope $2 # OK
    ;;
 start)
    FOR1 $2 "docker-machine start node"
@@ -155,6 +156,7 @@ init)
    WORKER_TOKEN=$(docker-machine ssh node1 docker swarm join-token -q worker)
    sleep 5
    FOR2 $2 "docker-machine ssh node" "docker swarm join --token '${WORKER_TOKEN}' '${MANAGGER_IP}':2377"
+   docker-machine ssh node1 "docker network create --driver overlay --attachable admin-net"
    ;;
 promote)
    FOR1 $2 "docker-machine ssh node1 docker node promote node"
@@ -162,6 +164,15 @@ promote)
 weave-net)
    FOR1 $2 "docker-machine ssh node" "docker plugin install --grant-all-permissions store/weaveworks/net-plugin:2.0.1"
    docker-machine ssh node1 docker network create --driver=store/weaveworks/net-plugin:2.0.1 weavenet
+   ;;
+ELK)
+   docker-machine ssh node1 "docker stack deploy -c Docker/compose/ELK/docker-compose.yml elk"
+   ;;
+monitoring)
+   docker-machine ssh node1 "docker stack deploy -c Docker/compose/monitoring/monitoring-stack.yml monitor"
+   # test?
+   sleep 10
+   docker-machine ssh node1 "docker exec `docker ps | grep -i influx | awk '{print $1}'` influx -execute 'CREATE DATABASE cadvisor'"
    ;;
 stop)
    FOR1 $2 "docker-machine stop node"
