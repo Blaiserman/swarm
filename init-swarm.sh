@@ -133,7 +133,7 @@ insecure-registr(){
 #-------------------------------------
 case "$1" in
 create)
-   FOR1 $2 "docker-machine create --driver virtualbox --engine-storage-driver overlay2 node"
+   FOR1 $2 "docker-machine create --driver virtualbox --engine-storage-driver overlay2 --engine-opt log-driver=gelf --engine-opt log-opt=gelf-address=udp://172.16.0.38:12201 node"
    # --virtualbox-disk-size "20000"  --virtualbox-cpu-count "1" --virtualbox-memory "1024" node$i
    # docker-machine create -d virtualbox --virtualbox-boot2docker-url \
    #https://releases.rancher.com/os/latest/rancheros.iso node$i
@@ -156,7 +156,7 @@ init)
    WORKER_TOKEN=$(docker-machine ssh node1 docker swarm join-token -q worker)
    sleep 5
    FOR2 $2 "docker-machine ssh node" "docker swarm join --token '${WORKER_TOKEN}' '${MANAGGER_IP}':2377"
-   docker-machine ssh node1 "docker network create --driver overlay --attachable admin-net"
+   docker-machine ssh node1 "docker network create --subnet=172.16.0.0/24 --driver overlay --attachable admin-net"
    ;;
 promote)
    FOR1 $2 "docker-machine ssh node1 docker node promote node"
@@ -166,7 +166,7 @@ weave-net)
    docker-machine ssh node1 docker network create --driver=store/weaveworks/net-plugin:2.0.1 weavenet
    ;;
 ELK)
-   docker-machine ssh node1 "docker stack deploy -c Docker/compose/ELK/docker-compose.yml elk"
+   docker-machine ssh node1 "docker stack deploy -c Docker/compose/ELK/elk.yml elk"
    ;;
 monitoring)
    docker-machine ssh node1 "docker stack deploy -c Docker/compose/monitoring/monitoring-stack.yml monitor"

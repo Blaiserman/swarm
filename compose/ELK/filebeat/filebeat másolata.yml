@@ -1,0 +1,27 @@
+################### Filebeat Configuration Example #########################
+
+############################# Filebeat ######################################
+filebeat:
+  prospectors:
+      paths:
+        - /host-logs/*.log
+        - /host-logs/*/*.log
+        - /host-logs/*/*/*.log
+      input_type: log
+      document_type: log
+      tail_files: true
+      paths:
+        - /host-logs/syslog
+      input_type: syslog
+      document_type: linux
+      tail_files: true
+
+output:
+  logstash:
+    hosts: ["logstash:5044"]
+
+shipper:
+  name: filebeat
+logging:
+  files:
+    rotateeverybytes: 10485760 # = 10MB

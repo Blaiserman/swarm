@@ -1,0 +1,11 @@
+################### Filebeat Configuration Example #########################
+
+############################# Filebeat ######################################
+filebeat.prospectors:
+- input_type: log
+  paths:
+    - /host-logs/docker.log
+
+output.logstash:
+  hosts: ["localhost:5044"]
+	
